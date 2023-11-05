@@ -1,30 +1,42 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import "./FilterBox.css";
 import "./SearchBar.css";
 import { FaSearch } from "react-icons/fa";
 
+export const CloseButton = ({value}) => {
+  
+    const onClickHandler = e => {
+        //remove filter from backend, filters list 
+        //receive the updated filters list as a response
+        updateFilterBar({filters : []});
+    }
+  
+    return (
+        <button className="searchSuggestions-bttn" data-bttnval={value} onClick={onClickHandler}>X</button>
+    );
 
+  }
 
-function updateIngrdTable(json) { //json should appear in the format: { ingrdList : ["milk", "egg"] }
-    const ingrdList = json.ingrdList;   //an array
-
+function updateFilterBar(json) { //json should appear in the format: { filters : ["cholesterol", "sugar"] }
+    const filters = json.filters;   //an array
     let list = []
-    for (let i = 0; i < ingrdList.length; i++){
-        list.push({id: i, value: ingrdList[i]});
+    for (let i = 0; i < filters.length; i++){
+        list.push({id: i, value: filters[i]});
     }
     const root = ReactDOM.createRoot(
-        document.getElementById("ingrdTable")
+        document.getElementById("filterBar")
     );
-    const element = <ul className="ingrd-table">
+    const element = <ul className="filter-table">
         {list.map(item => (
-            <li key={item.id} className="ingrd-items">{item.value}</li>
+            <li key={item.id} className="filter-items">
+                <div>{item.value}</div>
+                <CloseButton value={item.value} />
+            </li>
         ))}
         </ul>;
     root.render(element);
 }
-
-
-
 
 export const Button = ({value}) => {
 
@@ -33,7 +45,7 @@ export const Button = ({value}) => {
     const onClickHandler = e => {
       let val = e.currentTarget.getAttribute('data-bttnval')
       //get updated list from backend afeter appending new term
-      updateIngrdTable({ingrdList: [val]});
+      updateFilterBar({filters: [val, "egg"]});
       setText("Added");
     }
   
@@ -44,14 +56,12 @@ export const Button = ({value}) => {
   }
 
 
-
-
 function updateSuggestionsTable(json) { //json should appear in the format: { searchSuggestions : ["egg", "eggo-waffles"], valid : "yes" }
     const searchSuggestions = json.searchSuggestions;   //an array
     const valid = json.valid;
     if (searchSuggestions.length == 0 && valid == "no") {
         const root = ReactDOM.createRoot(
-            document.getElementById("searchSuggestions")
+            document.getElementById("filterSuggestions")
         );
         const element = <p>No results</p>
         root.render(element);
@@ -60,7 +70,7 @@ function updateSuggestionsTable(json) { //json should appear in the format: { se
     
     if (searchSuggestions.length == 0 && valid == "yes") {
         const root = ReactDOM.createRoot(
-            document.getElementById("searchSuggestions")
+            document.getElementById("filterSuggestions")
         );
         const element = <p></p>
         root.render(element);
@@ -72,7 +82,7 @@ function updateSuggestionsTable(json) { //json should appear in the format: { se
         list.push({id: i, value: searchSuggestions[i]});
     }
     const root = ReactDOM.createRoot(
-        document.getElementById("searchSuggestions")
+        document.getElementById("filterSuggestions")
     );
     const element = <ul className="suggestions-table">
         {list.map(item => (
@@ -86,19 +96,7 @@ function updateSuggestionsTable(json) { //json should appear in the format: { se
 
 
 
-
 function onChangeHandler(input) {
-    // (async () => {
-    //     const response = await fetch("http://localhost:3002/findSearchTerms", {
-    //         method: "POST",
-    //         headers: {
-    //             'Content-type': "application/json"
-    //         },
-    //         body: JSON.stringify({ searchTerm: e.target.value })
-    //         })
-    //     .then((response) => response.json())    //backend will send a response containing a list of searchable terms from the database that are close to the input
-    //     .then((json) => updateSuggestionsTable(json));
-    // })()
     let suggestions = [input]
     let terms = suggestions
     if (input.length<1) { //if the user did not type a string that is not long enough to search in the text box
@@ -112,18 +110,16 @@ function onChangeHandler(input) {
        }
 }
 
-
-
-
-export const SearchBar = () => {
+export const FilterBox = () => {
     const [input, setInput] = useState("")
     return (
-      <div className="Search">
-        <div className="SearchBar">
+      <div className="FilterBox">
+        <div id="filterBar"></div>
+        <div className="filter-SearchBar">
             <input className="input-box" placeholder="Enter an ingredient..." value={input} onChange={(e)=>{setInput(e.target.value); onChangeHandler(e.target.value)}}/>
             <FaSearch className="search-icon" />
             </div>
-        <div id="searchSuggestions" className="SearchSuggestions"></div>
+        <div id="filterSuggestions" className="SearchSuggestions"></div>
       </div>
     );
   }
