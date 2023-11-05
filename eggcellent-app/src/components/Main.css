@@ -1,0 +1,20 @@
+.Main {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    column-gap: 5%;
+}
+
+.IngrdBox {
+    width: 30%;
+    border-style: dotted;
+}
+
+.IngrdTable {
+    width: 80%;
+}
+
+.RecpeBox {
+    width: 50%;
+    border-style: dotted;
+}
