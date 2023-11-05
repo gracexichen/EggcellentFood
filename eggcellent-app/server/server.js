@@ -11,28 +11,23 @@ app.listen(8000, () => {
     console.log(`Server is running on port 8000.`);
     });
 
-const credentials = '<path_to_certificate>';
-  
-const client = new MongoClient('mongodb+srv://eggcellentfood.4pvgzkk.mongodb.net/?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority', {
-    sslKey: credentials,
-    sslCert: credentials,
-    serverApi: ServerApiVersion.v1
-});
-  
+
+
+const url = "mongodb+srv://eggcellentfooduser:BOLPUZVzT63d7AjY@EggcellentFood.4pvgzkk.mongodb.net/?retryWrites=true&w=majority";
+
+
+const client = new MongoClient(url);
 async function run() {
-    try {
-      await client.connect();
-      const database = client.db("testDB");
-      const collection = database.collection("testCol");
-      const docCount = await collection.countDocuments({});
-      console.log(docCount);
-      // perform actions using client
+    try{
+        await client.connect();
+        console.log('connection connected..')
+        const result = await client.db("Recipes").collection("Recipe Table 1").findOne({});
+        console.log(result)
+        
+    } catch(e){
+        console.error(e);
     } finally {
-      // Ensures that the client will close when you finish/error
-      await client.close();
+        await client.close()
     }
-}
-  
+    }
 run().catch(console.dir);
-  
-  
