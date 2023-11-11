@@ -34,6 +34,18 @@ export const Button = ({value}) => {
       let val = e.currentTarget.getAttribute('data-bttnval')
       //get updated list from backend afeter appending new term
       updateIngrdTable({ingrdList: [val]});
+      (async () => {
+        console.log("begin");
+        const response = await fetch("http://localhost:8000/ingrd-add", {
+          method: "POST",
+          headers: {
+            'Content-type': "application/json"
+          },
+          body: JSON.stringify({ ingredient: val })
+          })
+        .then((response) => response.json())
+        .then((json) => updateIngrdTable(JSON.parse(json)));
+      })();
       setText("Added");
     }
   
@@ -46,23 +58,24 @@ export const Button = ({value}) => {
 
 
 
-function updateSuggestionsTable(json) { //json should appear in the format: { searchSuggestions : ["egg", "eggo-waffles"], valid : "yes" }
+function updateIngrdSuggestionsTable(json) { //json should appear in the format: { searchSuggestions : ["egg", "eggo-waffles"], valid : "yes" }
     const searchSuggestions = json.searchSuggestions;   //an array
     const valid = json.valid;
-    if (searchSuggestions.length == 0 && valid == "no") {
-        const root = ReactDOM.createRoot(
-            document.getElementById("searchSuggestions")
-        );
-        const element = <p>No results</p>
-        root.render(element);
-        return;
-        }
     
-    if (searchSuggestions.length == 0 && valid == "yes") {
+    if (searchSuggestions.length == 0 && valid == "no") { //search term is not long enough
         const root = ReactDOM.createRoot(
             document.getElementById("searchSuggestions")
         );
         const element = <p></p>
+        root.render(element);
+        return;
+        }
+    
+    if (searchSuggestions.length == 0 && valid == "yes") { //search term does not exist in databse
+        const root = ReactDOM.createRoot(
+            document.getElementById("searchSuggestions")
+        );
+        const element = <p>No results</p>
         root.render(element);
         return;
         }
@@ -88,28 +101,27 @@ function updateSuggestionsTable(json) { //json should appear in the format: { se
 
 
 function onChangeHandler(input) {
-    // (async () => {
-    //     const response = await fetch("http://localhost:3002/findSearchTerms", {
-    //         method: "POST",
-    //         headers: {
-    //             'Content-type': "application/json"
-    //         },
-    //         body: JSON.stringify({ searchTerm: e.target.value })
-    //         })
-    //     .then((response) => response.json())    //backend will send a response containing a list of searchable terms from the database that are close to the input
-    //     .then((json) => updateSuggestionsTable(json));
-    // })()
+
     let suggestions = [input]
     let terms = suggestions
-    if (input.length<1) { //if the user did not type a string that is not long enough to search in the text box
-        updateSuggestionsTable({searchSuggestions: [], valid: "yes"});
+    if (input.length<1) { //if the user did not type a string that is long enough to search into the text box
+        updateIngrdSuggestionsTable({searchSuggestions: [], valid: "no"});
         }
-    else if (terms.length==0) { //if the user's search does not exist
-        updateSuggestionsTable({searchSuggestions: [], valid: "no"});
-        }
-    else { //if there are suggestions based on the user's typing
-        updateSuggestionsTable({searchSuggestions: terms, valid: "yes"});
-       }
+    else {
+        (async () => {
+            console.log("begin");
+            const response = await fetch("http://localhost:8000/ingrd-search", {
+              method: "POST",
+              headers: {
+                'Content-type': "application/json"
+              },
+              body: JSON.stringify({ searchTerm: input })
+              })
+            .then((response) => response.json())
+            .then((json) => updateIngrdSuggestionsTable({ searchSuggestions: JSON.parse(json).searchSuggestions, valid: "yes" }));
+          })();
+    }
+
 }
 
 
