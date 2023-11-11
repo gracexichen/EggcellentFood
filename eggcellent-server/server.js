@@ -39,6 +39,7 @@ async function searchRecipes(ingrdList) { //returns recipes contaning ALL ingred
 async function searchCondition(searchTerm) { //takes search term and returns possible (autocompleted), valid conditions
     try{
 
+        let suggestions = []
         await client.connect();
         console.log('connected to cluster..')
         let query = [{ $search: {
@@ -50,9 +51,10 @@ async function searchCondition(searchTerm) { //takes search term and returns pos
          } }];
         const result = await client.db("Conditions").collection("Conditions Table 1").aggregate(query);
         for await (const doc of result) {
-            console.dir(doc);
+            suggestions.push(doc.condition);
           }
-        console.log("done")
+        console.log(suggestions)
+        return JSON.stringify({ searchSuggestions: suggestions });
         
     } catch(e){
         console.error(e);
@@ -81,6 +83,7 @@ async function searchIngredient(searchTerm) { //takes search term and returns po
           }
         console.log(suggestions)
         return JSON.stringify({ searchSuggestions: suggestions });
+
     } catch(e){
         console.error(e);
     } finally {
@@ -89,19 +92,71 @@ async function searchIngredient(searchTerm) { //takes search term and returns po
 
 
 //Testing searches on mongodb~
-searchRecipes(["milk", "sugar"]).catch(console.dir);
-searchCondition("sugar").catch(console.dir);
-searchIngredient("eg").catch(console.dir);
+// searchRecipes(["milk", "sugar"]).catch(console.dir);
+// searchCondition("sugar").catch(console.dir);
+// searchIngredient("eg").catch(console.dir);
 
 
-///////////////FOR GRACE !!!!!!
+function appendIngredient(ingredient) {
+    ingrdList.push(ingredient)
+    return JSON.stringify({ ingrdList: ingrdList });
+}
 
-//Could you please create a global array that stores the current ingredient searches?
+function clearIngredients() {
+    ingrdList = []
+}
 
+function appendFilter(filter) {
+    console.log(filter)
+    filters.push(filter)
+    return JSON.stringify({ filters: filters });
+}
+
+function removeFilter(filter) {
+    const index = filters.indexOf(filter);
+    if (index > -1) {
+    filters.splice(index, 1);
+    }
+    return JSON.stringify({ filters: filters });
+}
+
+let ingrdList = [];
+let filters = [];
 
 app.post("/ingrd-search", (req, res) => {
     (async () => {
-    res.json(await searchIngredient(req.body.searchTerm))
+        res.json(await searchIngredient(req.body.searchTerm))
+    })();
+});
+
+app.post("/ingrd-add", (req, res) => {
+    (async () => {
+        res.json(await appendIngredient(req.body.ingredient))
+    })();
+});
+
+app.post("/ingrd-clear", (req, res) => {
+    (async () => {
+        clearIngredients()
+        res.json()
+    })();
+});
+
+app.post("/cndtion-search", (req, res) => {
+    (async () => {
+        res.json(await searchCondition(req.body.searchTerm))
+    })();
+});
+
+app.post("/cndtion-add", (req, res) => {
+    (async () => {
+        res.json(await appendFilter(req.body.filter))
+    })();
+});
+
+app.post("/cndtion-remove", (req, res) => {
+    (async () => {
+        res.json(await removeFilter(req.body.filter))
     })();
 });
 

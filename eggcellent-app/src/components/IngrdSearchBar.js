@@ -5,8 +5,8 @@ import { FaSearch } from "react-icons/fa";
 
 
 
-function updateIngrdTable(json) { //json should appear in the format: { ingrdList : ["milk", "egg"] }
-    const ingrdList = json.ingrdList;   //an array
+function updateIngrdTable(object) { //object should appear in the format: { ingrdList : ["milk", "egg"] }
+    const ingrdList = object.ingrdList;   //an array
 
     let list = []
     for (let i = 0; i < ingrdList.length; i++){
@@ -31,9 +31,8 @@ export const Button = ({value}) => {
     const [text, setText] = useState(value)
   
     const onClickHandler = e => {
-      let val = e.currentTarget.getAttribute('data-bttnval')
+      let val = e.currentTarget.getAttribute('data-bttnval');
       //get updated list from backend afeter appending new term
-      updateIngrdTable({ingrdList: [val]});
       (async () => {
         console.log("begin");
         const response = await fetch("http://localhost:8000/ingrd-add", {
@@ -58,9 +57,9 @@ export const Button = ({value}) => {
 
 
 
-function updateIngrdSuggestionsTable(json) { //json should appear in the format: { searchSuggestions : ["egg", "eggo-waffles"], valid : "yes" }
-    const searchSuggestions = json.searchSuggestions;   //an array
-    const valid = json.valid;
+function updateIngrdSuggestionsTable(object) { //object should appear in the format: { searchSuggestions : ["egg", "eggo-waffles"], valid : "yes" }
+    const searchSuggestions = object.searchSuggestions;   //an array
+    const valid = object.valid;
     
     if (searchSuggestions.length == 0 && valid == "no") { //search term is not long enough
         const root = ReactDOM.createRoot(
@@ -104,12 +103,12 @@ function onChangeHandler(input) {
 
     let suggestions = [input]
     let terms = suggestions
-    if (input.length<1) { //if the user did not type a string that is long enough to search into the text box
+    if (input.length<2) { //if the user did not type a string that is long enough to search into the text box
         updateIngrdSuggestionsTable({searchSuggestions: [], valid: "no"});
         }
     else {
         (async () => {
-            console.log("begin");
+            console.log("searching: "+input);
             const response = await fetch("http://localhost:8000/ingrd-search", {
               method: "POST",
               headers: {
@@ -127,7 +126,7 @@ function onChangeHandler(input) {
 
 
 
-export const SearchBar = () => {
+export const IngrdSearchBar = () => {
     const [input, setInput] = useState("")
     return (
       <div className="Search">
